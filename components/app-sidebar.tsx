@@ -26,7 +26,6 @@ import {
   Settings,
   CreditCard,
   Users,
-  Zap,
   Shield,
   Home,
   PlayCircle,
@@ -99,11 +98,6 @@ const settingsItems = [
     icon: Users,
   },
   {
-    title: "Integrations",
-    url: "/integrations",
-    icon: Zap,
-  },
-  {
     title: "Security",
     url: "/security",
     icon: Shield,
@@ -144,7 +138,7 @@ export function AppSidebar() {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
                       {item.badge && (
@@ -152,7 +146,7 @@ export function AppSidebar() {
                           {item.badge}
                         </Badge>
                       )}
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -167,10 +161,10 @@ export function AppSidebar() {
               {analyticsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -185,10 +179,10 @@ export function AppSidebar() {
               {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -201,7 +195,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/profile">
+              <Link href="/profile">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
                     src="https://avatars.githubusercontent.com/u/1639186?v=4"
@@ -213,7 +207,7 @@ export function AppSidebar() {
                   <span className="truncate font-semibold">John Doe</span>
                   <span className="truncate text-xs">john@company.com</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
