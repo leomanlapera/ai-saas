@@ -1,5 +1,21 @@
 "use client";
 
+import type React from "react";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  Mail,
+  Bot,
+  OctagonAlertIcon,
+} from "lucide-react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -7,15 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Bot, OctagonAlertIcon } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Eye, EyeOff, Loader2, Mail, Github } from "lucide-react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,48 +36,39 @@ import {
 } from "@/components/ui/form";
 import { authClient } from "@/lib/auth-client";
 
-const formSchema = z
-  .object({
-    name: z.string().min(1, { message: "Name is required" }),
-    email: z.string().email(),
-    password: z.string().min(1, { message: "Password is required" }),
-    confirmPassword: z.string().min(1, { message: "Password is required" }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1, { message: "Password is required" }),
+});
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
-export const SignUpView = () => {
+export function SignInView() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = (data: FormSchemaType) => {
+    setErrors({});
     setIsLoading(true);
 
-    authClient.signUp.email(
+    authClient.signIn.email(
       {
-        name: data.name,
         email: data.email,
         password: data.password,
+        callbackURL: "/",
       },
       {
         onSuccess: () => {
-          router.push("/");
+          setIsLoading(false);
         },
         onError: ({ error }) => {
           setErrors({ submit: error.message });
@@ -80,9 +78,25 @@ export const SignUpView = () => {
     );
   };
 
-  const handleSocialSignUp = (provider: string) => {
-    console.log(`Sign up with ${provider}`);
-    // TODO: Implement social sign up logic
+  const onSocial = (provider: "github" | "google") => {
+    setErrors({});
+    setIsLoading(true);
+
+    authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          setIsLoading(false);
+        },
+        onError: ({ error }) => {
+          setErrors({ submit: error.message });
+          setIsLoading(false);
+        },
+      }
+    );
   };
 
   return (
@@ -99,29 +113,29 @@ export const SignUpView = () => {
             </div>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Create your account
+            Welcome back
           </h1>
           <p className="text-muted-foreground">
-            Start your AI-powered meeting journey today
+            Sign in to your AI-powered meeting platform
           </p>
         </div>
 
-        {/* Sign Up Form */}
+        {/* Sign In Form */}
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Sign up</CardTitle>
+            <CardTitle className="text-xl">Sign in</CardTitle>
             <CardDescription>
-              Enter your information to create an account
+              Enter your email and password to access your account
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {/* Social Sign Up */}
+              {/* Social Sign In */}
               <div className="space-y-3">
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => handleSocialSignUp("google")}
+                  onClick={() => onSocial("google")}
                   disabled={isLoading}
                 >
                   <Mail className="mr-2 h-4 w-4" />
@@ -130,23 +144,31 @@ export const SignUpView = () => {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => handleSocialSignUp("github")}
+                  onClick={() => onSocial("github")}
                   disabled={isLoading}
                 >
-                  <Github className="mr-2 h-4 w-4" />
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    className="mr-2 h-4 w-4"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4" />
+                    <path d="M9 18c-4.51 2-5-2-7-2" />
+                  </svg>
                   Continue with GitHub
                 </Button>
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with email
-                  </span>
-                </div>
+              <div className="relative flex items-center text-xs uppercase">
+                <Separator className="flex-1" />
+                <span className="px-2 text-muted-foreground flex-none">
+                  Or continue with email
+                </span>
+                <Separator className="flex-1" />
               </div>
 
               {/* Form */}
@@ -155,25 +177,6 @@ export const SignUpView = () => {
                   onSubmit={form.handleSubmit(handleSubmit)}
                   className="space-y-4"
                 >
-                  {/* Name */}
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="John Doe"
-                            disabled={isLoading}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   {/* Email */}
                   <FormField
                     control={form.control}
@@ -200,7 +203,15 @@ export const SignUpView = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Password</FormLabel>
+                          <Link
+                            href="/forgot-password"
+                            className="text-sm text-primary hover:underline"
+                          >
+                            Forgot password?
+                          </Link>
+                        </div>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -213,7 +224,7 @@ export const SignUpView = () => {
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent!"
                               onClick={() => setShowPassword(!showPassword)}
                               disabled={isLoading}
                             >
@@ -223,28 +234,6 @@ export const SignUpView = () => {
                                 <Eye className="h-4 w-4" />
                               )}
                             </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Confirm Password */}
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type="password"
-                              placeholder="********"
-                              disabled={isLoading}
-                              {...field}
-                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -265,52 +254,64 @@ export const SignUpView = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
+                        Signing in...
                       </>
                     ) : (
-                      "Create account"
+                      "Sign in"
                     )}
                   </Button>
                 </form>
               </Form>
+
+              {/* Additional Links */}
+              <div className="text-center text-sm text-muted-foreground">
+                <p>
+                  {"Don't have an account? "}
+                  <Link
+                    href="/signup"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign up for free
+                  </Link>
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Sign In Link */}
-        <div className="text-center text-sm">
-          <span className="text-muted-foreground">
-            Already have an account?{" "}
-          </span>
-          <Link
-            href="/signin"
-            className="font-medium text-primary hover:underline"
-          >
-            Sign in
-          </Link>
+        {/* Terms */}
+        <div className="text-center text-muted-foreground text-xs *:[a]:hover:underline">
+          By clicking continue, you agree to our{" "}
+          <a href="#" className="text-primary font-medium">
+            Terms of service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="text-primary font-medium">
+            Privacy policy
+          </a>
         </div>
 
-        {/* Features Preview */}
+        {/* Trust Indicators */}
         <div className="text-center space-y-4 pt-6">
           <p className="text-sm text-muted-foreground">
-            Join thousands of teams using AI SaaS
+            Trusted by 10,000+ teams worldwide
           </p>
-          <div className="grid grid-cols-3 gap-4 text-xs text-muted-foreground">
-            <div className="space-y-1">
-              <div className="font-medium">🤖 AI Agents</div>
-              <div>Smart meeting assistance</div>
+          <div className="flex justify-center space-x-6 text-xs text-muted-foreground">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>99.9% Uptime</span>
             </div>
-            <div className="space-y-1">
-              <div className="font-medium">📞 HD Video</div>
-              <div>Crystal clear calls</div>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>SOC 2 Compliant</span>
             </div>
-            <div className="space-y-1">
-              <div className="font-medium">📝 Auto Notes</div>
-              <div>AI-generated summaries</div>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span>GDPR Ready</span>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
