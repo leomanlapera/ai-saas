@@ -1,9 +1,9 @@
 import { auth } from "@/lib/auth";
-import { HomeView } from "@/modules/home/ui/views/home-view";
+import { DashboardContent } from "@/modules/dashboard/ui/components/dashboard-content";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function Page() {
+export default async function DashboardPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -12,5 +12,5 @@ export default async function Page() {
     redirect("/signin");
   }
 
-  return <HomeView />;
+  return <DashboardContent />;
 }
